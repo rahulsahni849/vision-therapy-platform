@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PRACTITIONER
+  PATIENT
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  orgActivities OrgActivity[]
+}
+
+model User {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String   @unique
+  passwordHash   String
+  role           Role
+  firstName      String
+  lastName       String
+  inviteToken    String?
+  inviteExpires  DateTime?
+  isActive       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  refreshTokens  RefreshToken[]
+
+  assignmentsAsPatient      Assignment[] @relation("PatientAssignments")
+  assignmentsAsPractitioner Assignment[] @relation("PractitionerAssignments")
+}
+
+model Activity {
+  id           String   @id @default(uuid())
+  key          String   @unique
+  name         String
+  category     String
+  configSchema Json
+  version      String   @default("1.0.0")
+  description  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  orgActivities OrgActivity[]
+  assignments   Assignment[]
+}
+
+model OrgActivity {
+  organizationId String
+  activityId     String
+  isEnabled      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  activity     Activity     @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@id([organizationId, activityId])
+}
+
+model Assignment {
+  id              String   @id @default(uuid())
+  patientId       String
+  practitionerId  String
+  activityId      String
+  config          Json     @default("{}")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  patient      User     @relation("PatientAssignments", fields: [patientId], references: [id], onDelete: Cascade)
+  practitioner User     @relation("PractitionerAssignments", fields: [practitionerId], references: [id], onDelete: Cascade)
+  activity     Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  sessions     Session[]
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  assignmentId String
+  startedAt    DateTime
+  endedAt      DateTime?
+  rawResult    Json
+  createdAt    DateTime @default(now())
+
+  assignment Assignment      @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  metrics    SessionMetric[]
+}
+
+model SessionMetric {
+  id        String  @id @default(uuid())
+  sessionId String
+  key       String
+  value     Float
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+}

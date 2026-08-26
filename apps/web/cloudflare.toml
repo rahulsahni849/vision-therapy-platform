@@ -1,0 +1,7 @@
+# Cloudflare Pages build configuration
+# This file is used by Cloudflare Pages to build the frontend
+
+NAME="vision-therapy-web"
+COMMAND="pnpm install && pnpm --filter @vision/web build"
+BUILD_OUTPUT="apps/web/dist"
+NODE_VERSION="18"
