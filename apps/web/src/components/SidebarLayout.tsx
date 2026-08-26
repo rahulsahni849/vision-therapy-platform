@@ -33,7 +33,7 @@ export function SidebarLayout({
   const { user, logout } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-[var(--bg-secondary)] flex">
+    <div className="min-h-screen bg-[var(--bg-secondary)] flex bg-logo">
       {/* Sidebar */}
       <aside className="w-64 bg-[var(--bg-card)] border-r border-[var(--border-primary)] flex flex-col fixed h-full">
         {/* Logo / Brand */}

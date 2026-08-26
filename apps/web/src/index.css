@@ -179,3 +179,38 @@
   transition-timing-function: ease;
   transition-duration: 0.2s;
 }
+
+/* Background logo watermark */
+.bg-logo {
+  position: relative;
+}
+
+.bg-logo::before {
+  content: '';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background-image: url('/logo.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark .bg-logo::before {
+  opacity: 0.06;
+}
+
+/* Login page logo background */
+.bg-logo-login::before {
+  opacity: 0.06;
+}
+
+.dark .bg-logo-login::before {
+  opacity: 0.08;
+}
