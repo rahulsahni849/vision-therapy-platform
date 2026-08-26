@@ -167,14 +167,15 @@ export class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + parseInt(this.configService.get('REFRESH_TOKEN_EXPIRATION_DAYS', '30')));
 
-    return this.prisma.refreshToken.create({
+    await this.prisma.refreshToken.create({
       data: {
         userId,
         tokenHash,
         expiresAt,
       },
-      select: { token: true },
     });
+
+    return { token };
   }
 
   async getUserFromToken(payload: any) {

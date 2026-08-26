@@ -9,7 +9,7 @@ export class SessionsService {
     private registry: ActivityRegistry,
   ) {}
 
-  async createSession(patientId: string, assignmentId: string, startedAt: string, endedAt: string | null, rawResult: any) {
+  async createSession(patientId: string, assignmentId: string, startedAt: string, endedAt: string | null | undefined, rawResult: any) {
     // Verify assignment belongs to patient
     const assignment = await this.prisma.assignment.findUnique({
       where: { id: assignmentId },
