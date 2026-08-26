@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy } from 'react';
 
 interface ActivityPlayerProps {
   activityKey: string;
@@ -7,7 +7,7 @@ interface ActivityPlayerProps {
   onClose: () => void;
 }
 
-const activityComponents: Record<string, React.LazyExoticComponent<any>> = {
+const activityComponents: Record<string, React.ComponentType<any>> = {
   'saccades-training': lazy(() => import('../activities/saccades-training/SaccadesTrainingPlayer')),
   'convergence-exercise': lazy(() => import('../activities/convergence-exercise/ConvergenceExercisePlayer')),
   'pursuit-tracking': lazy(() => import('../activities/pursuit-tracking/PursuitTrackingPlayer')),

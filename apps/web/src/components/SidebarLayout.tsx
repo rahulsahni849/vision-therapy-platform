@@ -24,7 +24,7 @@ export function SidebarLayout({
   items,
   activeItem,
   onItemSelect,
-  title,
+  title: _title,
   subtitle,
   gradient,
   icon,

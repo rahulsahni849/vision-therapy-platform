@@ -37,7 +37,7 @@ export default function SaccadesTrainingPlayer({ config, onComplete }: SaccadesT
 
   const containerRef = useRef<HTMLDivElement>(null);
   const targetShowTime = useRef<number>(0);
-  const timerRef = useRef<NodeJS.Timeout>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const targetCount = config?.targetCount || 15;
   const targetSize = config?.targetSize || 50;
