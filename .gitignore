@@ -40,3 +40,6 @@ apps/api/prisma/migrations/
 
 # Documentation
 docs/
+
+# Deployment scripts
+scripts/
