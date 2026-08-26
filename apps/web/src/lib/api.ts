@@ -112,6 +112,25 @@ class ApiClient {
     });
   }
 
+  async updateUser(userId: string, data: { firstName?: string; lastName?: string; role?: string }) {
+    return this.request<any>(`/organizations/users/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async toggleUserActive(userId: string) {
+    return this.request<any>(`/organizations/users/${userId}/toggle-active`, {
+      method: 'PATCH',
+    });
+  }
+
+  async deleteUser(userId: string) {
+    return this.request<any>(`/organizations/users/${userId}`, {
+      method: 'DELETE',
+    });
+  }
+
   async inviteUser(data: { email: string; firstName: string; lastName: string; role: string }) {
     return this.request<any>('/auth/invite', {
       method: 'POST',

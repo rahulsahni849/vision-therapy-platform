@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { useAuthStore } from '../stores/auth.store';
 import { ThemeToggle } from './ThemeToggle';
-import logo from '../assets/logo.png';
+import { appConfig } from '../config';
 
 interface SidebarItem {
   key: string;
@@ -26,29 +26,19 @@ export function SidebarLayout({
   activeItem,
   onItemSelect,
   title: _title,
-  subtitle,
+  subtitle: _subtitle,
   gradient,
   icon: _icon,
 }: SidebarLayoutProps) {
   const { user, logout } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-[var(--bg-secondary)] flex bg-logo">
+    <div className="min-h-screen bg-[var(--bg-secondary)] flex">
       {/* Sidebar */}
       <aside className="w-64 bg-[var(--bg-card)] border-r border-[var(--border-primary)] flex flex-col fixed h-full">
         {/* Logo / Brand */}
         <div className="p-6 border-b border-[var(--border-primary)]">
-          <div className="flex items-center gap-3">
-            <img
-              src={logo}
-              alt="Vision One"
-              className="w-10 h-10 rounded-xl object-contain"
-            />
-            <div>
-              <h1 className="font-bold text-[var(--text-primary)]">Vision Therapy</h1>
-              <p className="text-xs text-[var(--text-tertiary)]">{subtitle}</p>
-            </div>
-          </div>
+          <h1 className="text-xl font-bold text-gradient">{appConfig.name}</h1>
         </div>
 
         {/* Navigation */}

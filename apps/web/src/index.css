@@ -191,26 +191,32 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
-  height: 600px;
+  width: 700px;
+  height: 700px;
   background-image: url('/logo.png');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.04;
+  opacity: 0.05;
   pointer-events: none;
   z-index: 0;
+  /* Multiply makes white/light backgrounds disappear */
+  mix-blend-mode: multiply;
 }
 
 .dark .bg-logo::before {
-  opacity: 0.06;
+  opacity: 0.07;
+  /* Screen makes dark/light backgrounds disappear on dark mode */
+  mix-blend-mode: screen;
 }
 
 /* Login page logo background */
 .bg-logo-login::before {
-  opacity: 0.06;
+  opacity: 0.07;
+  width: 900px;
+  height: 900px;
 }
 
 .dark .bg-logo-login::before {
-  opacity: 0.08;
+  opacity: 0.1;
 }

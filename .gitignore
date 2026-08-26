@@ -43,3 +43,6 @@ docs/
 
 # Deployment scripts
 scripts/
+
+# Local assets
+assets/

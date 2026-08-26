@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, ConflictException, BadRequestExcepti
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'crypto';
 
@@ -11,6 +12,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private emailService: EmailService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -124,12 +126,16 @@ export class AuthService {
       },
     });
 
-    // In production, send email with invite link
+    const frontendUrl = this.configService.get('FRONTEND_URL', 'http://localhost:5173');
+    const inviteLink = `${frontendUrl}/set-password?token=${inviteToken}`;
+
+    // Send invite email
+    await this.emailService.sendInviteEmail(email, inviteLink);
+
     return {
       id: user.id,
       email: user.email,
-      inviteToken,
-      inviteLink: `${this.configService.get('FRONTEND_URL', 'http://localhost:5173')}/set-password?token=${inviteToken}`,
+      inviteLink,
     };
   }
 

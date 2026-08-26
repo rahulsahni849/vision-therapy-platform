@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -34,6 +34,66 @@ export class OrganizationsService {
         createdAt: true,
       },
     });
+  }
+
+  async updateUser(orgId: string, userId: string, data: { firstName?: string; lastName?: string; role?: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.organizationId !== orgId) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.role === 'ADMIN') {
+      throw new ForbiddenException('Cannot modify admin users');
+    }
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        role: data.role as any,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isActive: true,
+      },
+    });
+  }
+
+  async toggleUserActive(orgId: string, userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.organizationId !== orgId) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.role === 'ADMIN') {
+      throw new ForbiddenException('Cannot modify admin users');
+    }
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive: !user.isActive },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isActive: true,
+      },
+    });
+  }
+
+  async deleteUser(orgId: string, userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.organizationId !== orgId) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.role === 'ADMIN') {
+      throw new ForbiddenException('Cannot delete admin users');
+    }
+    await this.prisma.user.delete({ where: { id: userId } });
+    return { message: 'User deleted successfully' };
   }
 
   async getOrgActivities(orgId: string) {

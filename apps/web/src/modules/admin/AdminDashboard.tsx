@@ -22,6 +22,17 @@ export function AdminDashboard() {
   const [testingActivity, setTestingActivity] = useState<any>(null);
   const [testResult, setTestResult] = useState<any>(null);
 
+  // Edit user state
+  const [editModal, setEditModal] = useState(false);
+  const [editUser, setEditUser] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', role: 'PRACTITIONER' });
+  const [editLoading, setEditLoading] = useState(false);
+
+  // Delete user state
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deleteUser, setDeleteUser] = useState<any>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
@@ -64,6 +75,57 @@ export function AdminDashboard() {
       alert(err.message || 'Failed to invite user');
     } finally {
       setInviteLoading(false);
+    }
+  };
+
+  const handleEditUser = (user: any) => {
+    setEditUser(user);
+    setEditForm({ firstName: user.firstName, lastName: user.lastName, role: user.role });
+    setEditModal(true);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditLoading(true);
+    try {
+      await apiClient.updateUser(editUser.id, editForm);
+      setEditModal(false);
+      setEditUser(null);
+      loadData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to update user');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleToggleActive = async (userId: string) => {
+    try {
+      await apiClient.toggleUserActive(userId);
+      setUsers(users.map(u =>
+        u.id === userId ? { ...u, isActive: !u.isActive } : u
+      ));
+    } catch (err: any) {
+      alert(err.message || 'Failed to toggle user status');
+    }
+  };
+
+  const handleDeleteClick = (user: any) => {
+    setDeleteUser(user);
+    setDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setDeleteLoading(true);
+    try {
+      await apiClient.deleteUser(deleteUser.id);
+      setDeleteModal(false);
+      setDeleteUser(null);
+      loadData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete user');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -195,7 +257,7 @@ export function AdminDashboard() {
             <table className="min-w-full divide-y divide-[var(--border-primary)]">
               <thead className="bg-[var(--bg-tertiary)]">
                 <tr>
-                  {['Name', 'Email', 'Role', 'Status'].map((header) => (
+                  {['Name', 'Email', 'Role', 'Status', 'Actions'].map((header) => (
                     <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                       {header}
                     </th>
@@ -227,9 +289,39 @@ export function AdminDashboard() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`badge ${u.isActive ? 'badge-success' : 'badge-warning'}`}>
-                        {u.isActive ? 'Active' : 'Pending'}
-                      </span>
+                      <button
+                        onClick={() => u.role !== 'ADMIN' && handleToggleActive(u.id)}
+                        className={`badge cursor-pointer transition-all ${
+                          u.isActive ? 'badge-success' : 'badge-warning'
+                        } ${u.role === 'ADMIN' ? 'cursor-not-allowed opacity-50' : 'hover:scale-105'}`}
+                        disabled={u.role === 'ADMIN'}
+                      >
+                        {u.isActive ? 'Active' : 'Inactive'}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {u.role !== 'ADMIN' && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEditUser(u)}
+                            className="p-2 rounded-lg hover:bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-brand-500 transition-colors"
+                            title="Edit user"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(u)}
+                            className="p-2 rounded-lg hover:bg-red-500/10 text-[var(--text-secondary)] hover:text-red-500 transition-colors"
+                            title="Delete user"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -357,6 +449,119 @@ export function AdminDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {editModal && editUser && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass-card w-full max-w-md p-6 animate-scale-in">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-[var(--text-primary)]">Edit User</h3>
+              <button onClick={() => setEditModal(false)} className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors">
+                <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Email</label>
+                <input
+                  type="email"
+                  disabled
+                  value={editUser.email}
+                  className="input-field opacity-50 cursor-not-allowed"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">First Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.firstName}
+                    onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Last Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.lastName}
+                    onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                    className="input-field"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Role</label>
+                <select
+                  value={editForm.role}
+                  onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                  className="input-field"
+                >
+                  <option value="PRACTITIONER">Practitioner</option>
+                  <option value="PATIENT">Patient</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button type="button" onClick={() => setEditModal(false)} className="flex-1 btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" disabled={editLoading} className="flex-1 btn-primary">
+                  {editLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete User Modal */}
+      {deleteModal && deleteUser && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass-card w-full max-w-md p-6 animate-scale-in">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-[var(--text-primary)]">Delete User</h3>
+              <button onClick={() => setDeleteModal(false)} className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors">
+                <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/10 flex items-center justify-center">
+                <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <p className="text-[var(--text-secondary)]">
+                Are you sure you want to delete <strong>{deleteUser.firstName} {deleteUser.lastName}</strong>?
+              </p>
+              <p className="text-sm text-[var(--text-tertiary)] mt-2">This action cannot be undone.</p>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteModal(false)} className="flex-1 btn-secondary">
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deleteLoading}
+                className="flex-1 btn-danger"
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete User'}
+              </button>
+            </div>
           </div>
         </div>
       )}
