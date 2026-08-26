@@ -1,16 +1,23 @@
 import { useState, useEffect } from 'react';
-import { useAuthStore } from '../../stores/auth.store';
 import { apiClient } from '../../lib/api';
+import { SidebarLayout } from '../../components/SidebarLayout';
+import { ActivityPlayer } from '../../components/ActivityPlayer';
+import { SessionResultsModal } from '../../components/SessionResultsModal';
+
+const sidebarItems = [
+  { key: 'activities', label: 'My Activities', icon: 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z' },
+  { key: 'history', label: 'Session History', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+];
 
 export function PatientDashboard() {
-  const { user, logout } = useAuthStore();
+  const [activeTab, setActiveTab] = useState('activities');
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeActivity, setActiveActivity] = useState<any>(null);
+  const [activeAssignment, setActiveAssignment] = useState<any>(null);
+  const [sessionResult, setSessionResult] = useState<any>(null);
+  const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    loadAssignments();
-  }, []);
+  useEffect(() => { loadAssignments(); }, []);
 
   const loadAssignments = async () => {
     try {
@@ -24,123 +31,209 @@ export function PatientDashboard() {
   };
 
   const handleStartActivity = (assignment: any) => {
-    setActiveActivity(assignment);
+    setActiveAssignment(assignment);
+    setSessionResult(null);
+    setSaved(false);
   };
 
-  const handleComplete = async (result: any) => {
-    if (!activeActivity) return;
-
+  const handleActivityComplete = async (result: any) => {
+    setSessionResult(result);
     try {
       await apiClient.createSession({
-        assignmentId: activeActivity.id,
+        assignmentId: activeAssignment.id,
         startedAt: new Date(Date.now() - 60000).toISOString(),
         endedAt: new Date().toISOString(),
         rawResult: result,
       });
-
-      setActiveActivity(null);
+      setSaved(true);
       loadAssignments();
     } catch (err) {
       console.error('Failed to save session:', err);
     }
   };
 
+  const handleCloseResults = () => {
+    setActiveAssignment(null);
+    setSessionResult(null);
+    setSaved(false);
+  };
+
+  // Activity is playing
+  if (activeAssignment && !sessionResult) {
+    return (
+      <ActivityPlayer
+        activityKey={activeAssignment.activity.key}
+        config={activeAssignment.config}
+        onComplete={handleActivityComplete}
+        onClose={handleCloseResults}
+      />
+    );
+  }
+
+  // Show results modal
+  if (sessionResult && activeAssignment) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-secondary)]">
+        <SessionResultsModal
+          activityName={activeAssignment.activity.name}
+          result={sessionResult}
+          saved={saved}
+          onClose={handleCloseResults}
+          onPlayAgain={() => { setSessionResult(null); setSaved(false); }}
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-[var(--text-secondary)]">Loading activities...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">My Activities</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{user?.firstName} {user?.lastName}</span>
-            <button onClick={logout} className="text-sm text-red-600 hover:text-red-800">Logout</button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {activeActivity ? (
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">{activeActivity.activity.name}</h2>
-              <button
-                onClick={() => setActiveActivity(null)}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                ← Back to activities
-              </button>
-            </div>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-              <p className="text-gray-500 mb-4">
-                Activity: {activeActivity.activity.name}
-              </p>
-              <p className="text-sm text-gray-400 mb-6">
-                Category: {activeActivity.activity.category}
-              </p>
-              <button
-                onClick={() => handleComplete({
-                  targets: [
-                    { x: 100, y: 100, hit: true, reactionTime: 250 },
-                    { x: 200, y: 150, hit: true, reactionTime: 300 },
-                    { x: 300, y: 200, hit: false, reactionTime: 0 },
-                  ],
-                  totalTargets: 3,
-                  completedTargets: 3,
-                })}
-                className="px-6 py-3 bg-green-600 text-white rounded-md font-medium hover:bg-green-700"
-              >
-                Complete Activity (Demo)
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {assignments.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-12 text-center">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">No Activities Assigned</h2>
-                <p className="text-gray-500">
-                  Your practitioner will assign activities for you to practice.
-                </p>
+    <SidebarLayout
+      items={sidebarItems}
+      activeItem={activeTab}
+      onItemSelect={setActiveTab}
+      title="My Activities"
+      subtitle="Patient"
+      gradient="from-brand-500 to-brand-700"
+      icon={
+        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+      }
+    >
+      {/* Activities Tab */}
+      {activeTab === 'activities' && (
+        <div className="animate-fade-in">
+          {assignments.length === 0 ? (
+            <div className="glass-card p-12 text-center">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-[var(--bg-tertiary)] flex items-center justify-center">
+                <svg className="w-10 h-10 text-[var(--text-tertiary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {assignments.map((assignment) => (
+              <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">No Activities Yet</h2>
+              <p className="text-[var(--text-secondary)] max-w-md mx-auto">
+                Your practitioner will assign activities for you to practice. Check back soon!
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-[var(--text-primary)]">Your Activities</h2>
+                <p className="text-[var(--text-secondary)]">Click on an activity to start exercising</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {assignments.map((assignment, index) => (
                   <div
                     key={assignment.id}
-                    className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+                    className="glass-card p-6 hover:scale-[1.02] transition-all duration-300 animate-fade-in cursor-pointer group"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                    onClick={() => handleStartActivity(assignment)}
                   >
-                    <div className="mb-4">
-                      <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="badge badge-brand">
                         {assignment.activity.category}
                       </span>
+                      <span className="text-xs text-[var(--text-tertiary)]">
+                        {assignment.sessions?.length || 0} completed
+                      </span>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">{assignment.activity.name}</h3>
-                    <p className="text-sm text-gray-500 mb-4">
+
+                    <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 group-hover:text-brand-500 transition-colors">
+                      {assignment.activity.name}
+                    </h3>
+
+                    <p className="text-sm text-[var(--text-secondary)] mb-4">
                       Assigned by {assignment.practitioner?.firstName} {assignment.practitioner?.lastName}
                     </p>
-                    <p className="text-xs text-gray-400 mb-4">
-                      {assignment.sessions?.length || 0} sessions completed
-                    </p>
-                    <button
-                      onClick={() => handleStartActivity(assignment)}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
-                    >
-                      Start Activity
-                    </button>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-[var(--border-primary)]">
+                      <div className="text-xs text-[var(--text-tertiary)]">
+                        Last session: {assignment.sessions?.[0]
+                          ? new Date(assignment.sessions[0].createdAt).toLocaleDateString()
+                          : 'Never'}
+                      </div>
+                      <div className="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-all duration-200">
+                        <svg className="w-5 h-5 text-brand-500 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
-            )}
-          </>
-        )}
-      </main>
-    </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* History Tab */}
+      {activeTab === 'history' && (
+        <div className="animate-fade-in">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">Session History</h2>
+            <p className="text-[var(--text-secondary)]">View your past activity sessions</p>
+          </div>
+
+          {assignments.length === 0 || assignments.every(a => !a.sessions?.length) ? (
+            <div className="glass-card p-12 text-center">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-[var(--bg-tertiary)] flex items-center justify-center">
+                <svg className="w-10 h-10 text-[var(--text-tertiary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">No Sessions Yet</h2>
+              <p className="text-[var(--text-secondary)]">Complete some activities to see your history here</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {assignments
+                .filter(a => a.sessions?.length > 0)
+                .map(assignment => (
+                  <div key={assignment.id} className="glass-card p-6">
+                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">{assignment.activity.name}</h3>
+                    <div className="space-y-3">
+                      {assignment.sessions.map((session: any) => (
+                        <div key={session.id} className="p-4 rounded-xl bg-[var(--bg-tertiary)] border border-[var(--border-primary)]">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-[var(--text-primary)]">
+                                {new Date(session.createdAt).toLocaleDateString()} at {new Date(session.startedAt).toLocaleTimeString()}
+                              </p>
+                              <p className="text-sm text-[var(--text-tertiary)]">
+                                {session.endedAt ? `Duration: ${Math.round((new Date(session.endedAt).getTime() - new Date(session.startedAt).getTime()) / 1000)}s` : 'In progress'}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              {session.metrics?.map((metric: any) => (
+                                <div key={metric.key} className="px-3 py-1 rounded-lg bg-[var(--bg-card)] border border-[var(--border-primary)]">
+                                  <p className="text-xs text-[var(--text-tertiary)]">{metric.key}</p>
+                                  <p className="text-sm font-bold text-[var(--text-primary)]">{metric.value}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
+          )}
+        </div>
+      )}
+    </SidebarLayout>
   );
 }

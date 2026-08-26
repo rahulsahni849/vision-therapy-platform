@@ -47,7 +47,7 @@ function App() {
         path="/"
         element={
           user ? (
-            <Navigate to={`/${user.role.toLowerCase()}`} replace />
+            <Navigate to={`/${user.role?.toLowerCase() || 'login'}`} replace />
           ) : (
             <Navigate to="/login" replace />
           )
