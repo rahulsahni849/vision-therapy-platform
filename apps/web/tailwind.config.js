@@ -8,18 +8,26 @@ export default {
   theme: {
     extend: {
       colors: {
+        vone: {
+          copper: '#BDA48C',
+          slate: '#7B8A91',
+          parchment: '#E6E2DA',
+          sand: '#C9B7A4',
+          taupe: '#9E9284',
+          charcoal: '#6066A7',
+        },
         brand: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          950: '#1e1b4b',
+          50: '#f0f0fb',
+          100: '#dddDF5',
+          200: '#bebeed',
+          300: '#9e9ee3',
+          400: '#8181d9',
+          500: '#6066A7',
+          600: '#5056A0',
+          700: '#434897',
+          800: '#393d8e',
+          900: '#2a2f7e',
+          950: '#1a1d5c',
         },
       },
       animation: {
@@ -47,8 +55,8 @@ export default {
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
         glow: {
-          '0%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)' },
-          '100%': { boxShadow: '0 0 40px rgba(99, 102, 241, 0.6)' },
+          '0%': { boxShadow: '0 0 20px rgba(96, 102, 167, 0.3)' },
+          '100%': { boxShadow: '0 0 40px rgba(96, 102, 167, 0.6)' },
         },
       },
       backgroundImage: {

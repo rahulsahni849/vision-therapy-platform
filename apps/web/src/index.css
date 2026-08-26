@@ -5,42 +5,42 @@
 @layer base {
   :root {
     --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #f1f5f9;
+    --bg-secondary: #FAF9F7;
+    --bg-tertiary: #F0EDE8;
     --bg-card: #ffffff;
-    --bg-card-hover: #f8fafc;
-    --border-primary: #e2e8f0;
-    --border-secondary: #cbd5e1;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-tertiary: #94a3b8;
-    --accent-primary: #6366f1;
-    --accent-secondary: #4f46e5;
-    --accent-glow: rgba(99, 102, 241, 0.15);
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --info: #3b82f6;
+    --bg-card-hover: #FAF9F7;
+    --border-primary: #E6E2DA;
+    --border-secondary: #C9B7A4;
+    --text-primary: #2D2D2D;
+    --text-secondary: #6066A7;
+    --text-tertiary: #9E9284;
+    --accent-primary: #6066A7;
+    --accent-secondary: #5056A0;
+    --accent-glow: rgba(96, 102, 167, 0.15);
+    --success: #7B8A91;
+    --warning: #C9B7A4;
+    --danger: #BDA48C;
+    --info: #6066A7;
   }
 
   .dark {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --bg-card: #1e293b;
-    --bg-card-hover: #334155;
-    --border-primary: #334155;
-    --border-secondary: #475569;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-tertiary: #64748b;
-    --accent-primary: #818cf8;
-    --accent-secondary: #6366f1;
-    --accent-glow: rgba(129, 140, 248, 0.2);
-    --success: #34d399;
-    --warning: #fbbf24;
-    --danger: #f87171;
-    --info: #60a5fa;
+    --bg-primary: #1A1B2E;
+    --bg-secondary: #22233A;
+    --bg-tertiary: #2D2E48;
+    --bg-card: #22233A;
+    --bg-card-hover: #2D2E48;
+    --border-primary: #3A3B5C;
+    --border-secondary: #4A4B6C;
+    --text-primary: #E6E2DA;
+    --text-secondary: #BDA48C;
+    --text-tertiary: #9E9284;
+    --accent-primary: #8181D9;
+    --accent-secondary: #6066A7;
+    --accent-glow: rgba(129, 129, 217, 0.2);
+    --success: #7B8A91;
+    --warning: #C9B7A4;
+    --danger: #BDA48C;
+    --info: #8181D9;
   }
 
   * {
